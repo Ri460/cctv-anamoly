@@ -1,0 +1,14 @@
+alerts:
+  clip_duration_seconds: 10
+  cooldown_seconds: 2.0
+  save_clips: true
+dashboard:
+  max_alerts_display: 50
+  refresh_rate_ms: 200
+inference:
+  device: cpu
+  fps: 15
+  threshold: 0.6
+  window_size: 30
+  temporal_trigger_frames: 1
+  temporal_clear_frames: 3

@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc   
+*.pyo
+*.pyd
+
+backend/data/
+backend/models/__pycache__/
+
+before UI change
+data
+
+all_content.txt

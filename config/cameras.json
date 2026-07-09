@@ -1,0 +1,11 @@
+{
+  "cameras": [
+    {
+      "id": "camera_1",
+      "name": "Webcam",
+      "rtsp_url": "0",
+      "location": "Office",
+      "enabled": true
+    }
+  ]
+}

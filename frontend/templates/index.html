@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🛡️ CCTV Anomaly Detection Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <i class="fas fa-shield-alt"></i>
+          <span>SmartWatch AI</span>
+        </div>
+        <div class="nav-status">
+          <span class="status-indicator" id="statusDot"></span>
+          <span id="statusText">Connecting...</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+      <!-- Header -->
+      <header class="page-header">
+        <h1><i class="fas fa-video"></i> Real-Time Anomaly Detection</h1>
+        <p class="subtitle">AI-powered surveillance system</p>
+      </header>
+
+      <!-- Input Selection -->
+      <div class="input-selection">
+        <div class="input-card active" data-target="camera-section">
+          <i class="fas fa-video fa-3x"></i>
+          <h3>Camera Stream</h3>
+          <p>Connect to live camera or RTSP stream</p>
+        </div>
+        <div class="input-card" data-target="upload-section">
+          <i class="fas fa-upload fa-3x"></i>
+          <h3>Video Upload</h3>
+          <p>Analyze pre-recorded video files</p>
+        </div>
+      </div>
+
+      <!-- Camera Stream Section -->
+      <section id="camera-section" class="input-section active">
+        <div class="section-title">
+          <i class="fas fa-camcorder"></i>
+          <h2>Camera Stream Configuration</h2>
+        </div>
+        <div class="form-group">
+          <label for="cameraType"
+            ><i class="fas fa-camera"></i> Camera Type</label
+          >
+          <select id="cameraType" class="form-control">
+            <option value="0">Webcam (Device 0)</option>
+            <option value="1">Webcam (Device 1)</option>
+            <option value="rtsp">RTSP Stream</option>
+          </select>
+        </div>
+        <div class="form-group" id="rtspUrlGroup" style="display: none">
+          <label for="rtspUrl"><i class="fas fa-link"></i> RTSP URL</label>
+          <input
+            type="text"
+            id="rtspUrl"
+            class="form-control"
+            placeholder="rtsp://192.168.1.100:554/stream"
+          />
+        </div>
+        <div class="button-group">
+          <button class="btn btn-primary" id="startStreamBtn">
+            <i class="fas fa-play-circle"></i> Start Stream
+          </button>
+          <button class="btn btn-secondary" id="stopStreamBtn" disabled>
+            <i class="fas fa-stop-circle"></i> Stop Stream
+          </button>
+        </div>
+      </section>
+
+      <!-- Video Upload Section -->
+      <section id="upload-section" class="input-section">
+        <div class="section-title">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <h2>Video Upload</h2>
+        </div>
+        <div class="upload-area" id="dropZone">
+          <div class="upload-icon">
+            <i class="fas fa-cloud-upload-alt fa-4x"></i>
+          </div>
+          <h3>Drag & Drop Video Files</h3>
+          <p>or click to browse</p>
+          <p class="upload-hint">Supported: MP4, AVI, MOV, MKV</p>
+          <input type="file" id="fileInput" accept="video/*" hidden />
+          <button class="btn btn-primary" id="browseBtn">
+            <i class="fas fa-folder-open"></i> Browse Files
+          </button>
+        </div>
+        <div class="upload-progress" id="uploadProgress" style="display: none">
+          <div class="progress-header">
+            <span id="fileName">video.mp4</span>
+            <span id="fileSize">0 MB</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="progress-stats">
+            <span id="progressPercent">0%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Video Display -->
+      <div class="video-container">
+        <canvas id="videoCanvas" width="1280" height="720"></canvas>
+        <div class="alert-overlay" id="alertOverlay">
+          <div class="alert-box">
+            <div class="alert-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3>⚠️ ANOMALY DETECTED</h3>
+            <p id="alertScore">Score: 0.85</p>
+            <div class="alert-actions">
+              <button class="btn btn-danger" onclick="saveClip()">
+                <i class="fas fa-save"></i> Save Clip
+              </button>
+              <button class="btn btn-secondary" onclick="dismissAlert()">
+                <i class="fas fa-times"></i> Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="camera-controls">
+          <button class="control-btn" id="snapshotBtn" title="Take Snapshot">
+            <i class="fas fa-camera"></i>
+          </button>
+          <button class="control-btn" id="recordBtn" title="Record">
+            <i class="fas fa-circle"></i>
+          </button>
+        </div>
+        <div class="status-badge" id="detectionStatus">
+          <i class="fas fa-check-circle"></i>
+          <span>Normal</span>
+        </div>
+      </div>
+
+      <!-- Stats Panel + Graph -->
+      <div class="stats-panel">
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-label">Anomaly Score</span>
+            <span class="stat-value" id="scoreValue">0.00</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">FPS</span>
+            <span class="stat-value" id="fpsValue">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Status</span>
+            <span class="stat-value" id="statusValue">Ready</span>
+          </div>
+        </div>
+
+        <!-- Threshold Slider -->
+        <div class="threshold-control">
+          <label for="thresholdSlider"
+            ><i class="fas fa-sliders-h"></i> Detection Threshold</label
+          >
+          <input
+            type="range"
+            id="thresholdSlider"
+            min="0.3"
+            max="0.9"
+            step="0.05"
+            value="0.6"
+          />
+          <span id="thresholdValue">0.60</span>
+        </div>
+
+        <!-- Email Config -->
+        <div class="email-config">
+          <label><i class="fas fa-envelope"></i> Alert Email</label>
+          <input
+            type="email"
+            id="alertEmail"
+            placeholder="security@org.com"
+            value="security-team@yourorg.com"
+          />
+          <button class="btn btn-sm" onclick="updateAlertEmail()">Save</button>
+        </div>
+
+        <!-- Anomaly Graph -->
+        <div class="graph-container">
+          <canvas id="anomalyChart" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- Alerts Timeline -->
+      <div class="alerts-section">
+        <div class="section-title">
+          <i class="fas fa-history"></i>
+          <h2>Recent Alerts</h2>
+        </div>
+        <div class="alerts-list" id="alertsList">
+          <div class="empty-state">
+            <i class="fas fa-bell-slash fa-3x"></i>
+            <p>No alerts yet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+  </body>
+</html>
